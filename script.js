@@ -1,41 +1,80 @@
-// Select elements
-const taskInput = document.getElementById('taskInput');
-const addTaskBtn = document.getElementById('addTaskBtn');
-const taskList = document.getElementById('taskList');
+// Select DOM Elements
+const taskInput = document.getElementById('task-input');
+const deadlineInput = document.getElementById('deadline-input');
+const addBtn = document.getElementById('add-btn');
+const taskList = document.getElementById('task-list');
 
-// Add task function
+// Add Task Function
 function addTask() {
   const taskText = taskInput.value.trim();
-  if (!taskText) return alert('Please enter a task.');
+  const deadline = deadlineInput.value;
 
-  // Create task element
-  const taskItem = document.createElement('li');
-  taskItem.className = 'task-item';
+  if (taskText === '') {
+    alert('Please enter a task!');
+    return;
+  }
 
-  taskItem.innerHTML = `
-    <span>${taskText}</span>
-    <div class="task-actions">
-      <button class="complete-btn">✔</button>
-      <button class="delete-btn">✖</button>
+  if (deadline === '') {
+    alert('Please set a deadline!');
+    return;
+  }
+
+  // Create List Item
+  const listItem = document.createElement('li');
+
+  // Add Task Content and Buttons
+  listItem.innerHTML = `
+    <span class="task-text">${taskText}</span>
+    <div class="details">
+      <span class="deadline">Deadline: ${new Date(deadline).toLocaleString()}</span>
+      <button onclick="toggleDone(this)">✔</button>
+      <button onclick="removeTask(this)">✖</button>
     </div>
   `;
 
-  // Add event listeners for actions
-  taskItem.querySelector('.complete-btn').addEventListener('click', () => {
-    taskItem.classList.toggle('completed');
-  });
+  // Append to Task List
+  taskList.appendChild(listItem);
 
-  taskItem.querySelector('.delete-btn').addEventListener('click', () => {
-    taskItem.remove();
-  });
-
-  // Append to task list and clear input
-  taskList.appendChild(taskItem);
+  // Clear Inputs
   taskInput.value = '';
+  deadlineInput.value = '';
+
+  // Check if Task is Overdue
+  checkOverdue();
 }
 
-// Event listeners
-addTaskBtn.addEventListener('click', addTask);
+// Toggle Task Completion
+function toggleDone(button) {
+  const taskItem = button.closest('li');
+  taskItem.classList.toggle('done');
+}
+
+// Remove Task Function
+function removeTask(button) {
+  const taskItem = button.closest('li');
+  taskList.removeChild(taskItem);
+}
+
+// Check Overdue Tasks
+function checkOverdue() {
+  const tasks = document.querySelectorAll('.task-list li');
+  const now = new Date();
+
+  tasks.forEach(task => {
+    const deadlineText = task.querySelector('.deadline').textContent;
+    const deadlineDate = new Date(deadlineText.replace('Deadline: ', ''));
+
+    if (deadlineDate < now && !task.classList.contains('done')) {
+      task.classList.add('overdue');
+    } else {
+      task.classList.remove('overdue');
+    }
+  });
+}
+
+// Event Listeners
+addBtn.addEventListener('click', addTask);
 taskInput.addEventListener('keypress', (e) => {
   if (e.key === 'Enter') addTask();
 });
+setInterval(checkOverdue, 60000); // Check overdue tasks every minute
